@@ -1,4 +1,6 @@
-<?php include 'config.php' ?>
+<?php include 'config.php';
+print_r($_SESSION);
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -317,7 +319,7 @@
                                         $category_name = $product['category_name'];
                                         $product_link = 'product.html?id=' . $product['id'];
                                         // Use the first image attachment path
-                                        $image_src = '../admin_dashboard/' . $product['attachments'][0] ?? 'assets/images/placeholder.jpg';
+                                        $image_src = 'admin_dashboard/' . $product['attachments'][0] ?? 'assets/images/placeholder.jpg';
 
                                         // Determine labels
                                         $labels = '';
@@ -504,7 +506,7 @@
                                                 foreach ($products as $product):
                                                     $category_name = $product['category_name'];
                                                     $product_link = 'product.html?id=' . $product['id'];
-                                                    $image_src = '../admin_dashboard/' . ($product['attachments'][0] ?? 'assets/images/placeholder.jpg');
+                                                    $image_src = 'admin_dashboard/' . ($product['attachments'][0] ?? 'assets/images/placeholder.jpg');
 
                                                     // Determine labels (Hot/New/Sale)
                                                     $labels = '';
