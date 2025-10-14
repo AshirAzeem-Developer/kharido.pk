@@ -81,7 +81,7 @@ $description = htmlspecialchars($product['description']);
                 $is_active = ($dot_counter === 1) ? ' active' : '';
             ?>
                 <a href="#<?php echo $hash_id; ?>" class="carousel-dot<?php echo $is_active; ?>">
-                  <img src="<?php echo htmlspecialchars('../admin_dashboard/' . $image_path); ?>" />
+                  <img src="<?php echo htmlspecialchars('admin_dashboard/' . $image_path); ?>" />
                 </a>
             <?php
                 $dot_counter++;
@@ -108,7 +108,7 @@ $description = htmlspecialchars($product['description']);
               ?>
                   <div class="intro-slide" data-hash="<?php echo $hash_id; ?>">
                     <img
-                      src="<?php echo htmlspecialchars('../admin_dashboard/' . $image_path); ?>"
+                      src="<?php echo htmlspecialchars('admin_dashboard/' . $image_path); ?>"
                       alt="<?php echo $product['product_name']; ?> Image <?php echo $slide_counter; ?>"
                       style="max-height: 400px; object-fit: contain;" />
                     <!-- <a href="<?php echo $product_link; ?>" class="btn-fullscreen">

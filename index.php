@@ -1,6 +1,11 @@
-<?php include 'config.php';
+<?php
+include 'config.php';
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 print_r($_SESSION);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -344,7 +349,19 @@ print_r($_SESSION);
                                                     <a href="#" class="btn-product-icon btn-wishlist" title="Add to wishlist"></a>
                                                 </div>
                                                 <div class="product-action">
-                                                    <a href="cart.php?add=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart"><span>add to cart</span></a>
+                                                    <?php if ($_SESSION['logged_in'] == 1 && $_SESSION['designation'] == "user"): ?>
+                                                        <!-- User not logged in: trigger modal -->
+
+
+                                                        <a href="cart.php?add=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart">
+                                                            <span>add to cart</span>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <!-- Logged-in user: go to cart -->
+                                                        <a href="#" class="btn-product btn-cart trigger-login" title="Add to cart">
+                                                            <span>add to cart</span>
+                                                        </a>
+                                                    <?php endif; ?>
                                                     <a href="popup/quickView.php?id=<?php echo $product['id']; ?>" class="btn-product btn-quickview" title="Quick view"><span>quick view</span></a>
                                                 </div>
                                             </figure>
@@ -968,6 +985,16 @@ print_r($_SESSION);
     <!-- Main JS File -->
     <script src="assets/js/main.js"></script>
     <script src="assets/js/demos/demo-4.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.trigger-login').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    $('#signin-modal').modal('show');
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

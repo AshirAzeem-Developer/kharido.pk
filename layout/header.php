@@ -12,6 +12,34 @@
     }
     // We will use the $all_categories array to populate the dropdown menu.
     ?>
+  <?php
+    $user_id = $_SESSION['user_id'] ?? 0; // assuming user is logged in
+    $cart_items = [];
+    $cart_total = 0;
+
+
+    $sql_cart_count = "SELECT COUNT(*) AS cart_count FROM tbl_cart WHERE user_id = $user_id";
+    $result_cart_count = mysqli_query($conn, $sql_cart_count);
+    $row_cart_count = mysqli_fetch_assoc($result_cart_count);
+    $cart_count = $row_cart_count['cart_count'] ?? 0;
+
+    if ($user_id > 0) {
+        $sql_cart = "SELECT c.*, p.product_name, p.price, p.attachments FROM tbl_cart c
+        JOIN tbl_products p ON c.product_id = p.id
+        WHERE c.user_id = $user_id";
+
+
+        $cart_result = $conn->query($sql_cart);
+
+        if ($cart_result && $cart_result->num_rows > 0) {
+            while ($row = $cart_result->fetch_assoc()) {
+                $cart_items[] = $row;
+                $cart_total += ($row['price'] * $row['quantity']);
+            }
+        }
+    }
+    ?>
+
   <header class="header header-intro-clearance header-4">
       <div class="header-top">
           <div class="container">
@@ -120,65 +148,59 @@
                       <a href="#" class="dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-display="static">
                           <div class="icon">
                               <i class="icon-shopping-cart"></i>
-                              <span class="cart-count">2</span>
+                              <span class="cart-count"><?= $cart_count ?></span>
                           </div>
                           <p>Cart</p>
                       </a>
 
+
                       <div class="dropdown-menu dropdown-menu-right">
                           <div class="dropdown-cart-products">
-                              <div class="product">
-                                  <div class="product-cart-details">
-                                      <h4 class="product-title">
-                                          <a href="product.html">Beige knitted elastic runner shoes</a>
-                                      </h4>
+                              <?php if (!empty($cart_items)) : ?>
+                                  <?php foreach ($cart_items as $item) : ?>
+                                      <div class="product">
+                                          <div class="product-cart-details">
+                                              <h4 class="product-title">
+                                                  <a href="product.php?id=<?= $item['product_id'] ?>">
+                                                      <?= htmlspecialchars($item['product_name']) ?>
+                                                  </a>
+                                              </h4>
+                                              <span class="cart-product-info">
+                                                  <span class="cart-product-qty"><?= $item['quantity'] ?></span>
+                                                  x $<?= number_format($item['price'], 2) ?>
+                                              </span>
+                                          </div>
 
-                                      <span class="cart-product-info">
-                                          <span class="cart-product-qty">1</span>
-                                          x $84.00
-                                      </span>
-                                  </div><!-- End .product-cart-details -->
+                                          <figure class="product-image-container">
+                                              <a href="product.php?id=<?= $item['product_id'] ?>" class="product-image">
+                                                  <img src="uploads/<?= htmlspecialchars($item['image']) ?>" alt="product">
+                                              </a>
+                                          </figure>
+                                          <a href="remove_from_cart.php?id=<?= $item['id'] ?>" class="btn-remove" title="Remove Product">
+                                              <i class="icon-close"></i>
+                                          </a>
+                                      </div>
+                                  <?php endforeach; ?>
+                              <?php else : ?>
+                                  <p class="text-center p-3">Your cart is empty</p>
+                              <?php endif; ?>
+                          </div>
 
-                                  <figure class="product-image-container">
-                                      <a href="product.html" class="product-image">
-                                          <img src="assets/images/products/cart/product-1.jpg" alt="product">
-                                      </a>
-                                  </figure>
-                                  <a href="#" class="btn-remove" title="Remove Product"><i class="icon-close"></i></a>
-                              </div><!-- End .product -->
+                          <?php if (!empty($cart_items)) : ?>
+                              <div class="dropdown-cart-total">
+                                  <span>Total</span>
+                                  <span class="cart-total-price">$<?= number_format($cart_total, 2) ?></span>
+                              </div>
 
-                              <div class="product">
-                                  <div class="product-cart-details">
-                                      <h4 class="product-title">
-                                          <a href="product.html">Blue utility pinafore denim dress</a>
-                                      </h4>
+                              <div class="dropdown-cart-action">
+                                  <a href="cart.php" class="btn btn-primary">View Cart</a>
+                                  <a href="checkout.php" class="btn btn-outline-primary-2">
+                                      <span>Checkout</span><i class="icon-long-arrow-right"></i>
+                                  </a>
+                              </div>
+                          <?php endif; ?>
+                      </div>
 
-                                      <span class="cart-product-info">
-                                          <span class="cart-product-qty">1</span>
-                                          x $76.00
-                                      </span>
-                                  </div><!-- End .product-cart-details -->
-
-                                  <figure class="product-image-container">
-                                      <a href="product.html" class="product-image">
-                                          <img src="assets/images/products/cart/product-2.jpg" alt="product">
-                                      </a>
-                                  </figure>
-                                  <a href="#" class="btn-remove" title="Remove Product"><i class="icon-close"></i></a>
-                              </div><!-- End .product -->
-                          </div><!-- End .cart-product -->
-
-                          <div class="dropdown-cart-total">
-                              <span>Total</span>
-
-                              <span class="cart-total-price">$160.00</span>
-                          </div><!-- End .dropdown-cart-total -->
-
-                          <div class="dropdown-cart-action">
-                              <a href="cart.php" class="btn btn-primary">View Cart</a>
-                              <a href="checkout.html" class="btn btn-outline-primary-2"><span>Checkout</span><i class="icon-long-arrow-right"></i></a>
-                          </div><!-- End .dropdown-cart-total -->
-                      </div><!-- End .dropdown-menu -->
                   </div><!-- End .cart-dropdown -->
               </div><!-- End .header-right -->
           </div><!-- End .container -->
