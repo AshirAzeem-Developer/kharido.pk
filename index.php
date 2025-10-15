@@ -3,7 +3,7 @@ include 'config.php';
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-print_r($_SESSION);
+// print_r($_SESSION);
 // **SESSION CHECK: If the user is already logged in, redirect them**
 // if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === TRUE) {
 //     header("Location: dashboard.php");
@@ -431,9 +431,7 @@ $conn->close();
                                                     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == 1 && isset($_SESSION['designation']) && $_SESSION['designation'] == "user") {
                                                         // Logged-in user: go to cart
                                                     ?>
-                                                        <a href="cart.php?add=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart">
-                                                            <span>add to cart</span>
-                                                        </a>
+                                                        <button class="add-to-cart" data-id="<?= $product['id'] ?>">Add to Cart</button>
                                                     <?php
                                                     } else {
                                                         // User not logged in: trigger modal
@@ -631,7 +629,7 @@ $conn->close();
                                                                 <a href="#" class="btn-product-icon btn-wishlist" title="Add to wishlist"></a>
                                                             </div>
                                                             <div class="product-action">
-                                                                <a href="cart.php?add=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart"><span>add to cart</span></a>
+                                                                <a href="functions/add-to-cart.php?id=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart"><span>add to cart</span></a>
                                                                 <a href="popup/quickView.php?id=<?php echo $product['id']; ?>" class="btn-product btn-quickview" title="Quick view"><span>quick view</span></a>
                                                             </div>
                                                         </figure>
@@ -1145,6 +1143,7 @@ $conn->close();
             });
         });
     </script>
+
 </body>
 
 </html>
