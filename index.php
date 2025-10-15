@@ -425,24 +425,30 @@ $conn->close();
                                                 <div class="product-action-vertical">
                                                     <a href="#" class="btn-product-icon btn-wishlist" title="Add to wishlist"></a>
                                                 </div>
-                                                <div class="product-action">
+                                                <div class="product-action d-flex justify-content-around align-items-center">
                                                     <?php
                                                     // Check if session is started and user is logged in
                                                     if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == 1 && isset($_SESSION['designation']) && $_SESSION['designation'] == "user") {
-                                                        // Logged-in user: go to cart
+                                                        // Logged-in user: AJAX Icon Button
                                                     ?>
-                                                        <button class="add-to-cart" data-id="<?= $product['id'] ?>">Add to Cart</button>
+                                                        <a href="#" class="btn-product-icon btn-cart add-to-cart" data-id="<?= $product['id'] ?>" title="Add to Cart">
+                                                            <i class="icon-shopping-bag"></i>
+                                                        </a>
                                                     <?php
                                                     } else {
-                                                        // User not logged in: trigger modal
+                                                        // Guest user: Trigger Login Modal, but use the small Icon Button style
                                                     ?>
-                                                        <a href="#" class="btn-product btn-cart trigger-login" title="Add to cart">
-                                                            <span>add to cart</span>
+                                                        <a href="#signin-modal" class="btn-product-icon btn-cart trigger-login" data-toggle="modal" title="Add to cart">
+                                                            <i class="icon-shopping-bag"></i>
                                                         </a>
                                                     <?php
                                                     }
                                                     ?>
-                                                    <a href="popup/quickView.php?id=<?php echo $product['id']; ?>" class="btn-product btn-quickview" title="Quick view"><span>quick view</span></a>
+
+                                                    <a href="popup/quickView.php?id=<?php echo $product['id']; ?>"
+                                                        class="btn-product-icon btn-quickview mb-1"
+                                                        title="Quick view">
+                                                        <i class="icon-eye"></i> </a>
                                                 </div>
                                             </figure>
                                             <div class="product-body">
@@ -1140,6 +1146,49 @@ $conn->close();
                     e.preventDefault();
                     $('#signin-modal').modal('show');
                 });
+            });
+        });
+    </script>
+    <script>
+        $(document).on('click', '.add-to-cart', function(e) {
+            e.preventDefault();
+
+            var productId = $(this).data('id');
+            var addButton = $(this);
+            var originalIconClass = 'icon-shopping-bag'; // The starting icon
+            var loadingIconClass = 'icon-refresh animated-icon'; // An icon for loading state (you might need to add the 'animated-icon' CSS class for spinning if not available)
+            var successIconClass = 'icon-check'; // The success icon
+
+            // 1. Set Loading State (Icon)
+            addButton.prop('disabled', true)
+                .find('i').removeClass(originalIconClass).addClass(loadingIconClass);
+
+            $.ajax({
+                url: 'functions/add-to-cart.php',
+                method: 'GET',
+                data: {
+                    id: productId
+                },
+                success: function(response) {
+                    // Update cart count
+                    var currentCount = parseInt($('.cart-count').text()) || 0;
+                    $('.cart-count').text(currentCount + 1);
+
+                    // 2. Set Success State (Icon)
+                    addButton.find('i').removeClass(loadingIconClass).addClass(successIconClass);
+
+                    // Revert button state after 3 seconds
+                    setTimeout(function() {
+                        addButton.prop('disabled', false)
+                            .find('i').removeClass(successIconClass).addClass(originalIconClass);
+                    }, 3000);
+                },
+                error: function(xhr, status, error) {
+                    alert('Error adding product to cart. Please try again.');
+                    // Revert button to original icon
+                    addButton.prop('disabled', false)
+                        .find('i').removeClass(loadingIconClass).addClass(originalIconClass);
+                }
             });
         });
     </script>
