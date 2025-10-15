@@ -4,6 +4,83 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 print_r($_SESSION);
+// **SESSION CHECK: If the user is already logged in, redirect them**
+// if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === TRUE) {
+//     header("Location: dashboard.php");
+//     exit();
+// }
+$message = '';
+$errors = [];
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $firstname = trim($_POST['firstname']);
+    $lastname = trim($_POST['lastname']);
+    $email = trim($_POST['email']);
+    $designation =  'website user';
+    $password_raw = $_POST['password'] ?? '';
+    $phone_number = trim($_POST['phone_number'] ?? '');
+    $terms_agreed = isset($_POST['terms']);
+
+    // ✅ Validation
+    if (empty($firstname)) {
+        $errors['firstname'] = "First name is required.";
+    }
+    if (empty($lastname)) {
+        $errors['lastname'] = "Last name is required.";
+    }
+    if (empty($email)) {
+        $errors['email'] = "Email is required.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errors['email'] = "Invalid email format.";
+    }
+    if (empty($phone_number)) {
+        $errors['phone_number'] = "Phone number is required.";
+    } elseif (!preg_match('/^\+?[0-9]{7,15}$/', $phone_number)) {
+        $errors['phone_number'] = "Invalid phone number format.";
+    }
+    if (empty($password_raw)) {
+        $errors['password'] = "Password is required.";
+    }
+    if (!$terms_agreed) {
+        $errors['terms'] = "You must agree to the Terms and Conditions.";
+    }
+
+    // ✅ If no validation errors, process the sign-up
+    if (empty($errors)) {
+        $password_hashed = password_hash($password_raw, PASSWORD_DEFAULT);
+
+        $stmt = $conn->prepare("INSERT INTO tbl_users (firstname, lastname, email, designation, password, phone_number) VALUES (?, ?, ?, ?, ?, ?)");
+
+        if ($stmt === false) {
+            error_log("SQL Prepare Error: " . $conn->error);
+            $message = '<div class="alert alert-danger text-white">A server error occurred.</div>';
+        } else {
+            $stmt->bind_param("ssssss", $firstname, $lastname, $email, $designation, $password_hashed, $phone_number);
+
+            try {
+                if ($stmt->execute()) {
+                    $_SESSION['user_id'] = $stmt->insert_id;
+                    $_SESSION['user_name'] = $firstname;
+                    $_SESSION['designation'] = $designation === "Administrator" ? "admin" : "user";
+                    $_SESSION['logged_in'] = TRUE;
+                    // header("Location: dashboard.php");
+                    // exit();
+                } else {
+                    $message = '<div class="alert alert-danger text-white">A server error occurred. Please try again.</div>';
+                }
+            } catch (mysqli_sql_exception $e) {
+                if ($e->getCode() == 1062) {
+                    $errors['email'] = "An account with this email already exists. Please sign in.";
+                } else {
+                    $message = '<div class="alert alert-danger text-white">A general database error occurred.</div>';
+                }
+            } finally {
+                $stmt->close();
+            }
+        }
+    }
+}
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -349,19 +426,24 @@ print_r($_SESSION);
                                                     <a href="#" class="btn-product-icon btn-wishlist" title="Add to wishlist"></a>
                                                 </div>
                                                 <div class="product-action">
-                                                    <?php if ($_SESSION['logged_in'] == 1 && $_SESSION['designation'] == "user"): ?>
-                                                        <!-- User not logged in: trigger modal -->
-
-
+                                                    <?php
+                                                    // Check if session is started and user is logged in
+                                                    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] == 1 && isset($_SESSION['designation']) && $_SESSION['designation'] == "user") {
+                                                        // Logged-in user: go to cart
+                                                    ?>
                                                         <a href="cart.php?add=<?php echo $product['id']; ?>" class="btn-product btn-cart" title="Add to cart">
                                                             <span>add to cart</span>
                                                         </a>
-                                                    <?php else: ?>
-                                                        <!-- Logged-in user: go to cart -->
+                                                    <?php
+                                                    } else {
+                                                        // User not logged in: trigger modal
+                                                    ?>
                                                         <a href="#" class="btn-product btn-cart trigger-login" title="Add to cart">
                                                             <span>add to cart</span>
                                                         </a>
-                                                    <?php endif; ?>
+                                                    <?php
+                                                    }
+                                                    ?>
                                                     <a href="popup/quickView.php?id=<?php echo $product['id']; ?>" class="btn-product btn-quickview" title="Quick view"><span>quick view</span></a>
                                                 </div>
                                             </figure>
@@ -877,16 +959,16 @@ print_r($_SESSION);
                             </ul>
                             <div class="tab-content" id="tab-content-5">
                                 <div class="tab-pane fade show active" id="signin" role="tabpanel" aria-labelledby="signin-tab">
-                                    <form action="#">
+                                    <form method="POST" action="sign-in.php">
                                         <div class="form-group">
-                                            <label for="singin-email">Username or email address *</label>
-                                            <input type="text" class="form-control" id="singin-email" name="singin-email" required>
-                                        </div><!-- End .form-group -->
+                                            <label for="signin-email">Email address *</label>
+                                            <input type="email" class="form-control" id="signin-email" name="email" required>
+                                        </div>
 
                                         <div class="form-group">
-                                            <label for="singin-password">Password *</label>
-                                            <input type="password" class="form-control" id="singin-password" name="singin-password" required>
-                                        </div><!-- End .form-group -->
+                                            <label for="signin-password">Password *</label>
+                                            <input type="password" class="form-control" id="signin-password" name="password" required>
+                                        </div>
 
                                         <div class="form-footer">
                                             <button type="submit" class="btn btn-outline-primary-2">
@@ -895,13 +977,14 @@ print_r($_SESSION);
                                             </button>
 
                                             <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input" id="signin-remember">
+                                                <input type="checkbox" name="remember_me" class="custom-control-input" id="signin-remember">
                                                 <label class="custom-control-label" for="signin-remember">Remember Me</label>
-                                            </div><!-- End .custom-checkbox -->
+                                            </div>
 
                                             <a href="#" class="forgot-link">Forgot Your Password?</a>
-                                        </div><!-- End .form-footer -->
+                                        </div>
                                     </form>
+
                                     <div class="form-choice">
                                         <p class="text-center">or sign in with</p>
                                         <div class="row">
@@ -921,15 +1004,73 @@ print_r($_SESSION);
                                     </div><!-- End .form-choice -->
                                 </div><!-- .End .tab-pane -->
                                 <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
-                                    <form action="#">
+                                    <form method="POST">
+                                        <!-- <div class="row">
+                                            <div class="form-group col-md-6">
+                                                <label for="register-first-name">First Name *</label>
+                                                <input type="text" class="form-control" id="register-first-name" name="register-first-name" required>
+                                            </div>
+                                            <div class="form-group col-md-6">
+                                                <label for="register-last-name">Last Name *</label>
+                                                <input type="text" class="form-control" id="register-last-name" name="register-last-name" required>
+                                            </div>
+                                        </div> -->
+
+                                        <div class="row">
+                                            <div class="form-group  col-md-6">
+                                                <label class="form-label">First Name</label>
+                                                <div class="input-group input-group-outline mb-1">
+                                                    <input type="text" class="form-control" name="firstname"
+                                                        value="<?php echo htmlspecialchars($_POST['firstname'] ?? ''); ?>" />
+                                                </div>
+                                                <?php if (isset($errors['firstname'])): ?>
+                                                    <small class="text-danger"><?php echo $errors['firstname']; ?></small>
+                                                <?php endif; ?>
+
+                                            </div>
+                                            <div class="form-group  col-md-6">
+                                                <label class="form-label">Last Name</label>
+                                                <div class="input-group input-group-outline mb-1">
+                                                    <input type="text" class="form-control" name="lastname"
+                                                        value="<?php echo htmlspecialchars($_POST['lastname'] ?? ''); ?>" />
+                                                </div>
+                                                <?php if (isset($errors['lastname'])): ?>
+                                                    <small class="text-danger"><?php echo $errors['lastname']; ?></small>
+                                                <?php endif; ?>
+
+                                            </div>
+                                        </div>
+                                        <!-- Phone Number -->
                                         <div class="form-group">
-                                            <label for="register-email">Your email address *</label>
-                                            <input type="email" class="form-control" id="register-email" name="register-email" required>
+                                            <label class="form-label">Phone Number</label>
+                                            <div class="input-group input-group-outline mb-1">
+                                                <input type="tel" class="form-control" name="phone_number"
+                                                    value="<?php echo htmlspecialchars($_POST['phone_number'] ?? ''); ?>" />
+                                            </div>
+                                            <?php if (isset($errors['phone_number'])): ?>
+                                                <small class="text-danger"><?php echo $errors['phone_number']; ?></small>
+                                            <?php endif; ?>
                                         </div><!-- End .form-group -->
+                                        <div class="form-group">
+                                            <label class="form-label">Email</label>
+                                            <div class="input-group input-group-outline mb-1">
+                                                <input type="email" class="form-control" name="email"
+                                                    value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" />
+                                            </div>
+                                            <?php if (isset($errors['email'])): ?>
+                                                <small class="text-danger"><?php echo $errors['email']; ?></small>
+                                            <?php endif; ?>
+                                        </div>
+
 
                                         <div class="form-group">
-                                            <label for="register-password">Password *</label>
-                                            <input type="password" class="form-control" id="register-password" name="register-password" required>
+                                            <label class="form-label">Password</label>
+                                            <div class="input-group input-group-outline mb-1">
+                                                <input type="password" class="form-control" name="password" />
+                                            </div>
+                                            <?php if (isset($errors['password'])): ?>
+                                                <small class="text-danger"><?php echo $errors['password']; ?></small>
+                                            <?php endif; ?>
                                         </div><!-- End .form-group -->
 
                                         <div class="form-footer">
@@ -937,11 +1078,20 @@ print_r($_SESSION);
                                                 <span>SIGN UP</span>
                                                 <i class="icon-long-arrow-right"></i>
                                             </button>
-
                                             <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input" id="register-policy" required>
-                                                <label class="custom-control-label" for="register-policy">I agree to the <a href="#">privacy policy</a> *</label>
-                                            </div><!-- End .custom-checkbox -->
+                                                <input class="custom-control-input" type="checkbox" value="agreed" id="flexCheckDefault" name="terms"
+                                                    <?php echo isset($_POST['terms']) ? 'checked' : ''; ?> />
+                                                <label class="custom-control-label" for="flexCheckDefault">
+                                                    I agree to the
+                                                    <a href="javascript:;" class="text-dark font-weight-bolder">Terms and Conditions</a>
+                                                </label>
+                                            </div>
+                                            <?php if (isset($errors['terms'])): ?>
+                                                <small class="text-danger"><?php echo $errors['terms']; ?></small>
+                                            <?php endif; ?>
+
+
+                                            <!-- End .custom-checkbox -->
                                         </div><!-- End .form-footer -->
                                     </form>
                                     <div class="form-choice">

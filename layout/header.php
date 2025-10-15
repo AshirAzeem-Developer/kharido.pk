@@ -10,7 +10,6 @@
             $all_categories[] = $row;
         }
     }
-    // We will use the $all_categories array to populate the dropdown menu.
     ?>
   <?php
     $user_id = $_SESSION['user_id'] ?? 0; // assuming user is logged in
@@ -64,6 +63,9 @@
                                       </div><!-- End .header-menu -->
                                   </div>
                               </li>
+                              <!-- Check If User is Logged-in then dont show the Sign-in Sign-up option -->
+
+
                               <li>
                                   <div class="header-dropdown">
                                       <a href="#">English</a>
@@ -76,7 +78,31 @@
                                       </div><!-- End .header-menu -->
                                   </div>
                               </li>
-                              <li><a href="#signin-modal" data-toggle="modal">Sign in / Sign up</a></li>
+
+                              <?php if (!isset($_SESSION['logged_in']) || $_SESSION['designation'] !== "user"): ?>
+                                  <li><a href="#signin-modal" data-toggle="modal">Sign in / Sign up</a></li>
+                              <?php endif; ?>
+
+                              <?php if (isset($_SESSION['logged_in']) && $_SESSION['designation'] === "user"): ?>
+                                  <li>
+                                      <div class="header-dropdown">
+                                          <a href="#">My Account</a>
+                                          <div class="header-menu">
+                                              <ul>
+                                                  <!-- <li><a href="dashboard.php">Dashboard</a></li> -->
+                                                  <li><a href="orders.php">Orders</a></li>
+                                                  <li><a href="profile.php">Profile</a></li>
+                                                  <li><a href="logout.php">Logout</a></li>
+                                              <?php elseif (isset($_SESSION['logged_in']) && $_SESSION['designation'] === "admin"): ?>
+                                                  <li><a href="admin/dashboard.php">Admin Dashboard</a></li>
+                                                  <li><a href="logout.php">Logout</a></li>
+
+                                              </ul>
+                                          </div><!-- End .header-menu -->
+                                      </div>
+                                  </li>
+                              <?php endif; ?>
+
                           </ul>
                       </li>
                   </ul><!-- End .top-menu -->
@@ -106,9 +132,9 @@
                               <label for="q" class="sr-only">Search</label>
                               <button class="btn btn-primary" type="submit"><i class="icon-search"></i></button>
                               <input type="search" class="form-control" name="q" id="q" placeholder="Search product ..." required>
-                          </div><!-- End .header-search-wrapper -->
+                          </div>
                       </form>
-                  </div><!-- End .header-search -->
+                  </div>
               </div>
 
               <div class="header-right">
