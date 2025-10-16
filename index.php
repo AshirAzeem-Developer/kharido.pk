@@ -549,8 +549,8 @@ $conn->close();
                 ?>
 
 
-
-                <div class="bg-light pt-5 pb-6">
+                <!-- Trending Products Section -->
+                <!-- <div class="bg-light pt-5 pb-6">
                     <div class="container trending-products">
                         <div class="heading heading-flex mb-3">
                             <div class="heading-left">
@@ -664,7 +664,7 @@ $conn->close();
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> -->
                 <!-- End .bg-light pt-5 pb-6 -->
 
                 <div class="mb-5"></div><!-- End .mb-5 -->
@@ -806,7 +806,7 @@ $conn->close();
                                     <li><a href="product-category-boxed.html">Product Category Boxed</a></li>
                                     <li><a href="product-category-fullwidth.html"><span>Product Category Fullwidth<span class="tip tip-new">New</span></span></a></li>
                                     <li><a href="cart.php">Cart</a></li>
-                                    <li><a href="checkout.html">Checkout</a></li>
+                                    <li><a href="checkout.php">Checkout</a></li>
                                     <li><a href="wishlist.html">Wishlist</a></li>
                                     <li><a href="#">Lookbook</a></li>
                                 </ul>

@@ -257,7 +257,7 @@
                                             </tbody>
                                         </table><!-- End .table table-summary -->
 
-                                        <a href="checkout.html" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
+                                        <a href="checkout.php" class="btn btn-outline-primary-2 btn-order btn-block">PROCEED TO CHECKOUT</a>
                                     </div><!-- End .summary -->
 
                                     <a href="index.php" class="btn btn-outline-dark-2 btn-block mb-3"><span>CONTINUE SHOPPING</span><i class="icon-refresh"></i></a>
@@ -329,7 +329,7 @@
                                 <li><a href="product-category-boxed.html">Product Category Boxed</a></li>
                                 <li><a href="product-category-fullwidth.html"><span>Product Category Fullwidth<span class="tip tip-new">New</span></span></a></li>
                                 <li><a href="cart.html">Cart</a></li>
-                                <li><a href="checkout.html">Checkout</a></li>
+                                <li><a href="checkout.php">Checkout</a></li>
                                 <li><a href="wishlist.html">Wishlist</a></li>
                                 <li><a href="#">Lookbook</a></li>
                             </ul>

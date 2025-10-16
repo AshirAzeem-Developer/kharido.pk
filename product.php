@@ -788,7 +788,7 @@ $review_count = get_review_count();
                 <a href="product-category-fullwidth.html"><span>Product Category Fullwidth<span class="tip tip-new">New</span></span></a>
               </li>
               <li><a href="cart.php">Cart</a></li>
-              <li><a href="checkout.html">Checkout</a></li>
+              <li><a href="checkout.php">Checkout</a></li>
               <li><a href="wishlist.html">Wishlist</a></li>
               <li><a href="#">Lookbook</a></li>
             </ul>
