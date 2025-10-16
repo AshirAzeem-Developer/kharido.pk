@@ -2,7 +2,7 @@
 session_start();
 // Assuming config.php contains $servername, $username, $password, $dbname
 include 'config.php';
-
+$error = $_GET['error'] ?? '';
 // 1. SECURITY: Enforce Login for Checkout
 $user_id = $_SESSION['user_id'] ?? 0;
 if ($user_id <= 0 || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== TRUE) {
@@ -124,40 +124,30 @@ try {
 </head>
 
 <body>
+  <?php if (isset($_SESSION['order_error'])): ?>
+    <div class="alert alert-danger text-center" role="alert">
+      <?= htmlspecialchars($_SESSION['order_error']);
+      unset($_SESSION['order_error']); ?>
+    </div>
+  <?php endif; ?>
+  <?php if ($error): ?>
+    <div class="alert alert-danger text-center" role="alert">
+      A payment processing error occurred. Please try again.
+    </div>
+  <?php endif; ?>
   <div class="page-wrapper">
     <?php include 'layout/header.php'; ?>
     <main class="main">
-      <div
-        class="page-header text-center"
-        style="background-image: url('assets/images/page-header-bg.jpg')">
-        <div class="container">
-          <h1 class="page-title">Checkout<span>Shop</span></h1>
-        </div>
-      </div>
-      <nav aria-label="breadcrumb" class="breadcrumb-nav">
-        <div class="container">
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Checkout</li>
-          </ol>
-        </div>
-      </nav>
-
       <div class="page-content">
         <div class="checkout">
           <div class="container">
             <div class="checkout-discount">
-              <form action="#">
-                <input type="text" class="form-control" required id="checkout-discount-input" />
-                <label for="checkout-discount-input" class="text-truncate">Have a coupon?
-                  <span>Click here to enter your code</span></label>
-              </form>
             </div>
-            <form action="functions/place_order.php" method="POST" enctype="multipart/form-data">
+
+            <form id="checkout-form" action="functions/place_order.php" method="POST">
               <div class="row">
                 <div class="col-lg-9">
                   <h2 class="checkout-title">Billing Details</h2>
-
                   <div class="row">
                     <div class="col-sm-6">
                       <label>First Name *</label>
@@ -223,8 +213,8 @@ try {
                     'Pakistan'
                   ]));
                   ?>
-                  <input type="hidden" name="shipping_address" value="<?= htmlspecialchars($full_address_string) ?>">
-                  <input type="hidden" name="billing_address" value="<?= htmlspecialchars($full_address_string) ?>">
+                  <input type="hidden" name="shipping_address_string" id="shipping_address_string" value="<?= htmlspecialchars($full_address_string) ?>">
+                  <input type="hidden" name="billing_address_string" id="billing_address_string" value="<?= htmlspecialchars($full_address_string) ?>">
 
                   <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="checkout-diff-address" />
@@ -245,7 +235,6 @@ try {
                           <th>Total</th>
                         </tr>
                       </thead>
-
                       <tbody>
                         <?php foreach ($cart_items as $item): ?>
                           <tr>
@@ -255,7 +244,6 @@ try {
                             <td>Rs. <?= format_price_rs($item['price'] * $item['quantity']) ?></td>
                           </tr>
                         <?php endforeach; ?>
-
                         <tr class="summary-subtotal">
                           <td>Subtotal:</td>
                           <td>Rs. <?= format_price_rs($cart_subtotal) ?></td>
@@ -264,19 +252,18 @@ try {
                           <td>Shipping:</td>
                           <td>Rs. <?= format_price_rs($shipping_cost) ?></td>
                         </tr>
-
                         <tr class="summary-total">
                           <td>Total:</td>
                           <td>Rs. <?= format_price_rs($final_total) ?></td>
                         </tr>
                       </tbody>
                     </table>
-                    <div class="accordion-summary" id="accordion-payment">
 
+                    <div class="accordion-summary" id="accordion-payment">
                       <div class="card">
                         <div class="card-header">
                           <div class="custom-control custom-radio">
-                            <input type="radio" id="cod_radio" name="payment_method" value="cod" class="custom-control-input" checked required>
+                            <input type="radio" id="cod_radio" name="payment_method" value="cod" class="custom-control-input payment-method-radio" checked required>
                             <label class="custom-control-label" for="cod_radio">Cash on Delivery</label>
                           </div>
                         </div>
@@ -285,8 +272,11 @@ try {
                       <div class="card">
                         <div class="card-header">
                           <div class="custom-control custom-radio">
-                            <input type="radio" id="card_radio" name="payment_method" value="card" class="custom-control-input" required>
-                            <label class="custom-control-label" for="card_radio">Credit Card (Not Active)</label>
+                            <input type="radio" id="paypal_radio" name="payment_method" value="paypal" class="custom-control-input payment-method-radio" required>
+                            <label class="custom-control-label" for="paypal_radio">
+                              PayPal
+                              <img src="assets/images/payments-summary.png" alt="PayPal" class="float-right" style="height: 20px;">
+                            </label>
                           </div>
                         </div>
                       </div>
@@ -295,10 +285,13 @@ try {
                     <input type="hidden" name="total_amount" value="<?= $final_total ?>">
                     <input type="hidden" name="shipping_cost" value="<?= $shipping_cost ?>">
 
-                    <button type="submit" class="btn btn-outline-primary-2 btn-order btn-block">
+                    <button type="submit" id="cod-submit-button" class="btn btn-outline-primary-2 btn-order btn-block">
                       <span class="btn-text">Place Order</span>
                       <span class="btn-hover-text">Proceed to Checkout</span>
                     </button>
+
+                    <div id="paypal-button-container" style="margin-top: 15px; display: none;"></div>
+
                   </div>
                 </aside>
               </div>
@@ -310,7 +303,7 @@ try {
 
     <?php include 'layout/footer.php'; ?>
   </div>
-
+  <div id="paypal-button-container" style="margin-top: 15px;"></div>
   <script src="assets/js/jquery.min.js"></script>
   <script src="assets/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/jquery.hoverIntent.min.js"></script>
@@ -318,6 +311,117 @@ try {
   <script src="assets/js/superfish.min.js"></script>
   <script src="assets/js/owl.carousel.min.js"></script>
   <script src="assets/js/main.js"></script>
+
+
+  <script src="https://www.paypal.com/sdk/js?client-id=AXbmCprgHhbefFilx3Oy-8KocEGMBhNqOj01iirOVY1hdbpNG9ZcGmmi_Cw7AmeKHl7yA6veLp26SCSF&currency=USD"></script>
+  <script>
+    $(document).ready(function() {
+      const FINAL_TOTAL = <?= number_format($final_total, 2, '.', '') ?>;
+      const COD_BUTTON = $('#cod-submit-button');
+      const PAYPAL_CONTAINER = $('#paypal-button-container');
+
+      // 1. Payment Method Toggle Logic
+      $('.payment-method-radio').on('change', function() {
+        if ($(this).val() === 'paypal') {
+          COD_BUTTON.hide();
+          PAYPAL_CONTAINER.show();
+        } else {
+          COD_BUTTON.show();
+          PAYPAL_CONTAINER.hide();
+        }
+      }).trigger('change'); // Initialize button visibility on load
+
+      // 2. PayPal Button Setup
+      paypal.Buttons({
+        createOrder: function(data, actions) {
+          // Ensure the address fields are valid before creating the PayPal order
+          if (!document.getElementById('checkout-form').checkValidity()) {
+            alert('Please fill out all required billing and shipping fields.');
+            // Manually trigger the browser's validation UI
+            document.getElementById('checkout-form').reportValidity();
+            return false;
+          }
+
+          return actions.order.create({
+            purchase_units: [{
+              amount: {
+                value: FINAL_TOTAL
+              },
+              description: 'Kharido.pk Order'
+            }]
+          });
+        },
+        onApprove: function(data, actions) {
+          return actions.order.capture().then(function(details) {
+            // Start processing on the server side
+            processServerPayment(data.orderID, details);
+          });
+        },
+        onCancel: function(data) {
+          alert('PayPal payment was cancelled.');
+        },
+        onError: function(err) {
+          console.error(err);
+          alert('An error occurred during the PayPal transaction. Please check the console.');
+        }
+      }).render('#paypal-button-container');
+
+      // 3. Server-Side Finalization Function
+      function processServerPayment(paypalOrderID, paypalDetails) {
+        // Collect all form data (including manually typed addresses)
+        var formData = $('#checkout-form').serializeArray();
+
+        // Overwrite the hidden address strings with the CURRENT form input values
+        var currentShippingAddress = $('input[name="address1"]').val() + ', ' +
+          $('input[name="address2"]').val() + ', ' +
+          $('input[name="city"]').val() + ', ' +
+          $('input[name="state"]').val() + ', ' +
+          $('input[name="postcode"]').val() + ', ' +
+          $('input[name="country"]').val();
+
+        // Append/Update custom data fields
+        formData.push({
+          name: 'paypal_order_id',
+          value: paypalOrderID
+        });
+        formData.push({
+          name: 'payment_method',
+          value: 'paypal'
+        });
+        // Send the freshly typed addresses, overriding the old hidden inputs
+        formData.push({
+          name: 'shipping_address',
+          value: currentShippingAddress
+        });
+        formData.push({
+          name: 'billing_address',
+          value: currentShippingAddress
+        });
+
+        // Temporarily disable buttons/show loading state
+        PAYPAL_CONTAINER.html('Processing Payment...');
+
+        $.ajax({
+          url: 'functions/paypal_capture.php',
+          method: 'POST',
+          data: formData,
+          dataType: 'json',
+          success: function(response) {
+            if (response.success) {
+              window.location.href = 'order_confirmation.php?order_id=' + response.order_id;
+            } else {
+              window.location.href = 'checkout.php?error=1'; // Redirect with a generic error
+            }
+          },
+          error: function(xhr) {
+            console.error("AJAX Error:", xhr.responseText);
+            alert('Failed to complete order due to a server error. Please try COD.');
+            window.location.href = 'checkout.php?error=1';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 
 </html>
