@@ -3,7 +3,7 @@ include 'config.php';
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-// print_r($_SESSION);
+print_r($_SESSION);
 // **SESSION CHECK: If the user is already logged in, redirect them**
 // if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === TRUE) {
 //     header("Location: dashboard.php");
