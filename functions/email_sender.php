@@ -21,14 +21,13 @@ function sendOrderConfirmationEmail($recipientEmail, $subject, $bodyHtml)
     $mail = new PHPMailer(true);
 
     try {
-        // Server Settings (!!! REPLACE THESE WITH YOUR ACTUAL SMTP CREDENTIALS !!!)
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';   // E.g., 'smtp.gmail.com', 'smtp-mail.outlook.com'
+        $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'ashir9112001@gmail.com'; // Your full email address
-        $mail->Password   = 'vqkh shzl kqkr yojz';     // Your SMTP password/App Password
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Standard encryption for port 587
-        $mail->Port       = 587;                          // Standard port for STARTTLS
+        $mail->Username   = 'ashir9112001@gmail.com';
+        $mail->Password   = 'vqkha shzls kqkrh yojzi';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
 
         // Recipients
         $mail->setFrom('no-reply@kharido.pk', 'Kharido.pk Order Service');
@@ -43,7 +42,6 @@ function sendOrderConfirmationEmail($recipientEmail, $subject, $bodyHtml)
         $mail->send();
         return true;
     } catch (Exception $e) {
-        // Log the error for debugging purposes
         error_log("Email could not be sent. Mailer Error: {$mail->ErrorInfo}");
         return false;
     }
