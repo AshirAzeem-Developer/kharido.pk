@@ -11,6 +11,7 @@
         }
     }
 
+
     // --- Fetch Cart Items ---
     $user_id = $_SESSION['user_id'] ?? 0;
     $cart_items = [];
@@ -210,7 +211,7 @@
                                                  <img src="admin_dashboard/<?= htmlspecialchars($item['image']) ?>" alt="product">
                                              </a>
                                          </figure>
-                                         <a href="remove_from_cart.php?id=<?= $item['id'] ?>" class="btn-remove" title="Remove Product">
+                                         <a href="cart.php?remove=<?= $item['product_id'] ?>" class="btn-remove" title="Remove Product">
                                              <i class="icon-close"></i>
                                          </a>
                                      </div>

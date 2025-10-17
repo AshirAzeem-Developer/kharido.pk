@@ -1182,6 +1182,7 @@ $conn->close();
                         addButton.prop('disabled', false)
                             .find('i').removeClass(successIconClass).addClass(originalIconClass);
                     }, 3000);
+                    window.location.href = 'index.php';
                 },
                 error: function(xhr, status, error) {
                     alert('Error adding product to cart. Please try again.');

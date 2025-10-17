@@ -10,6 +10,7 @@
     // Handle Remove Item - Must work for both DB and Session cart
     if (isset($_GET['remove'])) {
         $remove_id = (int)$_GET['remove'];
+        $redirect_url = $_SERVER['HTTP_REFERER'] ?? 'cart.php'; // 💡 NEW: Get the previous URL
 
         if ($user_id > 0) {
             // Logged-in: Remove from database
@@ -23,7 +24,9 @@
                 unset($_SESSION['cart'][$remove_id]);
             }
         }
-        header("Location: cart.php");
+
+        // 💡 REDIRECT TO THE PREVIOUS PAGE (or back to cart.php as a safe fallback)
+        header("Location: " . $redirect_url);
         exit();
     }
 
