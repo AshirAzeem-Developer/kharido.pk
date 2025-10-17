@@ -1,4 +1,5 @@
 <?php
+require_once '../lib/credentials.php';
 // Ensure PHPMailer is loaded (adjust path based on where you placed the library)
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
@@ -22,12 +23,12 @@ function sendOrderConfirmationEmail($recipientEmail, $subject, $bodyHtml)
 
     try {
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';
+        $mail->Host       = SMTP_HOST;     // 💡 SECURED
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'ashir9112001@gmail.com';
-        $mail->Password   = 'vqkha shzls kqkrh yojzi';
+        $mail->Username   = SMTP_USERNAME; // 💡 SECURED
+        $mail->Password   = SMTP_PASSWORD; // 💡 SECURED
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Port       = SMTP_PORT;     // 💡 SECURED
 
         // Recipients
         $mail->setFrom('no-reply@kharido.pk', 'Kharido.pk Order Service');

@@ -1,5 +1,7 @@
 <?php
 session_start();
+// 💡 ADD THIS LINE TO LOAD YOUR SECURE CONSTANTS
+require_once 'lib/credentials.php';
 // Assuming config.php contains $servername, $username, $password, $dbname
 include 'config.php';
 $error = $_GET['error'] ?? '';
@@ -313,7 +315,7 @@ try {
   <script src="assets/js/main.js"></script>
 
 
-  <script src="https://www.paypal.com/sdk/js?client-id=AXbmCprgHhbefFilx3Oy-8KocEGMBhNqOj01iirOVY1hdbpNG9ZcGmmi_Cw7AmeKHl7yA6veLp26SCSF&currency=USD"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=<?= PAYPAL_CLIENT_ID_PUBLIC ?>&currency=USD"></script>
   <script>
     $(document).ready(function() {
       const FINAL_TOTAL = <?= number_format($final_total, 2, '.', '') ?>;
