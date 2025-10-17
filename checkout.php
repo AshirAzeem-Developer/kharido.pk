@@ -331,8 +331,8 @@ try {
           COD_BUTTON.show();
           PAYPAL_CONTAINER.hide();
         }
-      }).trigger('change'); // Initialize button visibility on load
-
+      }) // Initialize button visibility on load
+      $('.payment-method-radio:checked').trigger('change');
       // 2. PayPal Button Setup
       paypal.Buttons({
         createOrder: function(data, actions) {
